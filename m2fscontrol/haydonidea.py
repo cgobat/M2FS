@@ -15,7 +15,12 @@ from collections import namedtuple
 # 2000 count/rev * 1/200 rev/full step * 1/.001" fstep/in = 10000 counts/in
 # control in 1/64th step units
 # nominal positioning at .5 full step
-# 1 ustep is 0.397 nm (this is the IFUM GUI commanded unit! The HK GUI uses full steps!)
+# 1 ustep is 0.397 um (this is the IFUM GUI commanded unit! The HK GUI uses full steps!)
+# STD 11/18*2.9 "/mm  -> 1.772 "/mm * .397e-3 mm/ustep => 1428.8 ustep/"
+# LSB 11/16.5 * 2.9 "/mm => 1309.7 ustep/"
+# HR 11/30 * 2.9 "/mm => 2381.3 ustep/"
+#2.9 is from 206265/(6389*11)
+
 # Attained positioning at ~3 microsteps per reported positions ~ 1.19 um
 # Backlash is under 10 usteps (3.97um)
 # Encoder only good to 2.54 um (i.e .001*200/2000*25.4
