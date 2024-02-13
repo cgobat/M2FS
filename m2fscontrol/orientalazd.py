@@ -17,6 +17,9 @@ import logging, time, threading, select
 # unit= the slave unit this request is targeting
 # address= the starting address to read from
 
+#2/12/24 allocate unused R I/O bit one as a calibrated flag:
+# i.e. val = self.read_regs(0x007D, 1); val[1]
+
 
 # SOME VERY EARLY NOTES:
 # SKR3306D-0470-P0-0BA0
@@ -278,6 +281,7 @@ class OrientalMotor(object):
             return False  # Abort we were stopped
         self.set_remote_in('HOME')
         self.set_remote_in('HOME', False)
+
         elapsed = 0
         while not (self.break_is_on or self.alarm or self.home_end or elapsed > MAX_HOME_TIME):
             elapsed += .1
@@ -285,7 +289,21 @@ class OrientalMotor(object):
 
         self.enable_software_limits()
         self.turn_on_break()
-        return self.home_end and not self.alarm
+
+        if self.home_end and not self.alarm:
+            with self.rlock:
+                val = self.read_regs(0x007D, 1)
+                val[1] = True
+                val.reverse()  # writes are reversed words, gross
+                self.write_regs(0x007D, val.uint)
+            return True
+        else:
+            with self.rlock:
+                val = self.read_regs(0x007D, 1)
+                val[1] = False
+                val.reverse()  # writes are reversed words, gross
+                self.write_regs(0x007D, val.uint)
+            return False
 
     def get_temps(self):
         """ drivetemp, motor temp (deg C)"""
@@ -368,6 +386,12 @@ class OrientalMotor(object):
     @property
     def break_is_on(self):
         return self.get_remoteOut(pretty=False)[REMOTE_IO_OUT_BITS.index('STOP-COFF_R')]
+
+    @property
+    def calibrated(self):
+        with self.rlock:
+            val = self.read_regs(0x007D, 1)
+            return val[1]
 
     def turn_on_break(self):
         #p284
