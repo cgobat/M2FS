@@ -26,10 +26,11 @@ root:
 #    propagate: no
 loggers:
   Director: info
-  GalilAgentR: info
+  GalilAgentR:
+    GalilAgentR: info
+    m2fscontrol.selectedconnection: debug
   GalilAgentB:
     GalilAgentB: info
-    m2fscontrol.selectedconnection: debug
   ShoeAgentR: info
   ShoeAgentB: info
   ShackHartmanAgent: info
