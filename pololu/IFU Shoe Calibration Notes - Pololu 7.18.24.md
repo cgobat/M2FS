@@ -6,7 +6,59 @@ _**!!!!!! DO NOT OPERATE WITHOUT BOTH SHOES CONNECTED !!!!!!!**_
 
 NOTE THE NEW (as of 2024) P8 MOTOR HAS NEVER BEEN TESTED WITH THE 15 V TOWER.
 DO NOT USE IT.
+
+
+====
+===================
+R connected
+B connected
+R&B Normal
+===R Shoe Status===
+ (pipe, height)
+ ADC: 190, 72
+ Servo: 0, 0
+ Pos: 974, 4
+ Err: 974, 4
+ Moving: 0, 0
+  ms since move: 24719, 24719
+  SL Delta: -1, 1
+ Toler: 30, 10
+Desired Slit: 6
+Detected Slit: INTERMEDIATE
+Errors: 0
+Jrk: 1, 1
+MiP: 0 Safe: 1 Relay: 1 curPipeNdx: 5
+Slit Pos:
+ Up:    975 925 600 525 500 3
+ Down:  80 80 80 80 80 0
+ Pipe:  10 220 400 580 760 975
+Free Mem:622
+===================
+===B Shoe Status===
+ (pipe, height)
+ ADC: 852, 443
+ Servo: 0, 0
+ Pos: 19, 542
+ Err: 19, 542
+ Moving: 0, 0
+  ms since move: 24772, 24773
+  SL Delta: -926, 539
+ Toler: 13, 10
+Desired Slit: 256
+Detected Slit: INTERMEDIATE
+Errors: 0
+Jrk: 1, 1
+MiP: 0 Safe: 0 Relay: 1 curPipeNdx: 0
+Slit Pos:
+ Up:    975 925 600 525 500 3
+ Down:  80 80 80 80 80 0
+ Pipe:  20 180 340 530 730 945
+Free Mem:622
+===================
+:
+
  
+when tightening cables dont put carriage to 0!!! use ~7
 ====
 
 The mechanical limits happen at about 4.65 and 22.51 (determined with old slits, pre '24).
