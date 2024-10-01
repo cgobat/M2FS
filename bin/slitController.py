@@ -248,7 +248,7 @@ class SlitController(Agent):
             #First check Red shoe for motion
             try:
                 self.connections['ShoeAgentR'].sendMessageBlocking(command.string)
-                activeHoldA=self.connections['ShoeAgentR'].receiveMessageBlocking()
+                activeHoldR=self.connections['ShoeAgentR'].receiveMessageBlocking()
             except IOError:
                 activeHoldR=''
             #Then check Blue shoe for motion

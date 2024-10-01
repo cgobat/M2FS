@@ -173,9 +173,6 @@ class Director(Agent):
             'OCC_CALIBRATE': self.OCCULTER_command_handler,
             'OCC_STALLPREVENT': self.OCCULTER_command_handler,
 
-            'SLITRAW': self.SLITS_comand_handler,
-            'SLIT': self.SLITS_comand_handler,
-
             'BENEAR': self.IFUSHIELD_command_handler,
             'LIHE': self.IFUSHIELD_command_handler,
             'THXE': self.IFUSHIELD_command_handler,
