@@ -328,6 +328,13 @@ class OrientalMotor(object):
 
         #move_to -50 should generate cmd=[0, 0, 0, 1, 65534, 47739, 0, 46667, 15, 16960, 15, 16960, 0, 1000, 0, 1]
         """
+
+        if not self.calibrated and not relative:
+            with self.rlock:
+                self.calibrate()
+            if not self.calibrated:
+                raise RuntimeError('Calibration failed')
+
         op_number = 0
         op_type = 3 if relative else 1  # relative to feedback (2 is relative to previous command pos)
 
@@ -347,32 +354,6 @@ class OrientalMotor(object):
             self.turn_off_break()
             time.sleep(_debreak_sleep)
             self.write_regs(0x058, [word.uint for word in cmd.cut(16)])
-
-        # def split_dword(x):
-        #     return x >> 16, x & 0xffff
-        #
-        # def twos_complement(val, nbits):
-        #     """Compute the 2's complement of int value val"""
-        #     if val < 0:
-        #         val = (1 << nbits) + val
-        #     else:
-        #         if (val & (1 << (nbits - 1))) != 0:
-        #             # If sign bit is set.
-        #             # compute negative value.
-        #             val = val - (1 << nbits)
-        #     return val
-        # cmd = []
-        # cmd.extend(split_dword(op_number))
-        # cmd.extend(split_dword(op_type))
-        # cmd.extend(split_dword(twos_complement(position, 32)))
-        # cmd.extend(split_dword(speed))
-        # cmd.extend(split_dword(accel))
-        # cmd.extend(split_dword(decel))
-        # cmd.extend(split_dword(current))
-        # cmd.extend(split_dword(trigger))
-        # self.turn_off_break()
-        # time.sleep(_debreak_sleep)
-        # self.modbus.write_registers(0x058, cmd, unit=1)
 
     def stop(self, apply_break=True):
         """
@@ -475,9 +456,11 @@ class OrientalMotor(object):
         drive_temp, motor_temp = self.get_temps()
         position = self.get_position()
         commanded_position = self.get_commanded_position()
+        calibrated = self.calibrated
 
         return OrientalState(direct_bits, remote_bits, out_bits, drive_temp=drive_temp, motor_temp=motor_temp,
-                             position=position, commanded_position=commanded_position, torque=torque_pct, alarm=alarm)
+                             position=position, commanded_position=commanded_position, torque=torque_pct, alarm=alarm,
+                             calibrated=calibrated)
 
 
 class OrientalAlarm(object):
@@ -514,7 +497,7 @@ class OrientalAlarm(object):
 
 class OrientalState(object):
     def __init__(self, direct_bits, remote_bits, out_bits, motor_temp=None, drive_temp=None,
-                 position=None, commanded_position=None, alarm=None, torque=None):
+                 position=None, commanded_position=None, alarm=None, torque=None, calibrated=False):
         """
         required attributes:
         'error_string' (if has_fault)
@@ -549,6 +532,7 @@ class OrientalState(object):
 
         # self.error_string = error_string
         self.has_fault = bool(self.alarm)
+        self.calibrated = bool(calibrated)
 
     @property
     def position_error_str(self):

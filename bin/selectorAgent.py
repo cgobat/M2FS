@@ -186,6 +186,7 @@ class SelectorAgent(Agent):
                                 ('Break', 'On' if status.brake_on else 'Off'),
                                 ('Moving', str(status.moving)),
                                 ('Torque', str(status.torque)),
+                                ('Calibrated', str(status.calibrated)),
                                 ('PError', status.position_error_str),
                                 ('FWLim', str(status.fwlim)),
                                 ('RVLim', str(status.rvlim)),
@@ -290,6 +291,8 @@ class SelectorAgent(Agent):
             else:
                 if status.moving:
                     state = 'MOVING'
+                elif not status.calibrated:
+                    state = 'UNCALIBRATED'
                 else:
                     state = 'INTERMEDIATE'
                     for name, pos in M2FSConfig.getSelectorDefaults().items():
@@ -305,15 +308,25 @@ class SelectorAgent(Agent):
             if not len(command_parts) >= 2 or command_parts[1].lower() not in known_pos:
                 self.bad_command_handler(command)
                 return
-            try:
-                self.connections['ifuselector'].move_to(int(known_pos[command_parts[1].lower()]))
-                status = self.connections['ifuselector'].status()
-                response = 'ERROR: ' + status.error_string if status.has_fault else 'OK'
-            except IOError as e:
-                response = str(e)
-                if not response.startswith('ERROR: '):
-                    response = 'ERROR: ' + response
-            command.setReply(response)
+
+            command.setReply('OK')
+            self.startWorkerThread(command, 'MOVING', self._selector_mover,
+                                   args=(int(known_pos[command_parts[1].lower()]), ),
+                                   block=('IFUS', 'IFUS_CALIBRATE', 'IFUS_MOVE', 'IFUS_AUTOBREAK'))
+
+    def _selector_mover(self, pos):
+        command_name = threading.currentThread().getName()
+        try:
+            self.connections['ifuselector'].move_to(pos)
+            status = self.connections['ifuselector'].status()
+            response = 'ERROR: ' + status.error_string if status.has_fault else ''
+        except IOError as e:
+            response = str(e)
+            if not response.startswith('ERROR: '):
+                response = 'ERROR: ' + response
+        except RuntimeError as e:  # calibration failed.
+            response = 'ERROR: Calibration failed'
+        self.returnFromWorkerThread(command_name, finalState=response)
 
     def IFUPOS_command_handler(self, command):
         """
@@ -361,15 +374,11 @@ class SelectorAgent(Agent):
         command_parts = command.string.split(' ')
         # Vet the command
         if len(command_parts) > 1 and longTest(command_parts[1]):
-            try:
-                self.connections['ifuselector'].move_to(int(command_parts[1]))
-                status = self.connections['ifuselector'].status()
-                response = 'ERROR: ' + status.error_string if status.has_fault else 'OK'
-            except IOError as e:
-                response = str(e)
-                if not response.startswith('ERROR: '):
-                    response = 'ERROR: ' + response
-            command.setReply(response)
+            command.setReply('OK')
+            self.startWorkerThread(command, 'MOVING', self._selector_mover,
+                                   args=(int(command_parts[1]), ),
+                                   block=('IFUS', 'IFUS_CALIBRATE', 'IFUS_MOVE', 'IFUS_AUTOBREAK'))
+
         else:
             self.bad_command_handler(command)
 
@@ -394,7 +403,7 @@ class SelectorAgent(Agent):
     def CALIBRATE_command_handler(self, command):
         command.setReply('OK')
         self.startWorkerThread(command, 'MOVING', self._calibration_worker,
-                               block=('IFUS', 'IFUS_CALIBRATE','IFUS_AUTOBREAK'))
+                               block=('IFUS', 'IFUS_CALIBRATE','IFUS_AUTOBREAK', 'IFUS_MOVE'))
 
     def _calibration_worker(self):
         try:
