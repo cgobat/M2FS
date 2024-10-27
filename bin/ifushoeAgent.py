@@ -16,7 +16,7 @@ STOWSLIT = 1
 SHOE_BOOT_TIME = 4.0
 SHOE_SHUTDOWN_TIME = .25
 
-SLIT_NAMES = {'1': 'S80', '2': 'S300', '3': 'L180', '4': 'L80', '5': 'L300', '6': 'H180'}
+SLIT_NAMES = {'1': 'S80', '2': 'S300', '3': 'L180', '4': 'L80', '5': 'L300', '6': 'H300'}
 SLIT_NUMBERS = {v: k for k, v in SLIT_NAMES.items()}
 
 # 'SLITSRAW': self.RAW_command_handler,
@@ -704,6 +704,10 @@ class IFUShoeAgent(Agent):
         elif len(command_parts) < 5:
             id, place, pos = command_parts[1:4]
             slit='*'
+        elif len(command_parts) == 9:  #command, id, place, pos_slit1-6
+            id, place = command_parts[1:3]
+            pos = command_parts[3:]
+            slit='*'
         else:
             id, place, slit, pos = command_parts[1:5]
 
@@ -721,16 +725,24 @@ class IFUShoeAgent(Agent):
                 response = 'ERROR: IFU shoe control tower offline'
         else:  #if setting
             if slit == '*':
-                self.bad_command_handler(command)
-                return
-            try:
-                base = ('SS' + id) if place == 'pipe' else ('HS' + id + place[0].upper())
-                self._send_command_to_shoe(base + slit + pos)
-                response = 'OK'
-            except ShoeCommandNotAcknowledgedError:
-                response = 'ERROR: Shoe controller rejected command, is a move in progress?'
-            except IOError:
-                response = 'ERROR: IFU shoe control tower offline'
+                slit=range(1,7)
+                if len(pos)!=6:
+                    self.bad_command_handler(command)
+                    return
+            else:
+                slit=[slit]
+                pos=[pos]
+            for s, p in zip(slit, pos):
+                try:
+                    base = ('SS' + id) if place == 'pipe' else ('HS' + id + place[0].upper())
+                    self._send_command_to_shoe(base + s + p)
+                    response = 'OK'
+                except ShoeCommandNotAcknowledgedError:
+                    response = 'ERROR: Shoe controller rejected command, is a move in progress?'
+                    break
+                except IOError:
+                    response = 'ERROR: IFU shoe control tower offline'
+                    break
 
         command.setReply(response)
 
