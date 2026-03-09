@@ -29,7 +29,6 @@ sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/mas
 cd /
 #sudo git clone https://github.com/baileyji/M2FS-Control.git /M2FS-Control --recurse-submodules --branch ifum
 sudo chown -R pi /M2FS-Control
-sudo pip install -e /M2FS-Control/jbastro
 sudo pip install -e /M2FS-Control/hole_mapper
 sudo pip install -e /M2FS-Control
 

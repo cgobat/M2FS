@@ -8,7 +8,6 @@ from wtforms import DecimalField, validators
 
 import hole_mapper.pathconf
 from hole_mapper.platedata import get_metadata, get_all_plate_names
-from jbastro.astrolibsimple import sexconvert
 
 from flask import send_file
 import StringIO, datetime
@@ -46,6 +45,22 @@ app.secret_key = 'development key'
 
 ROTATOR_SETTING=-7.24
 
+
+def coord_to_sexagesimal(coord, is_ra=False, fmt='{:+03d}:{:02d}:{:07.4f}'):
+    """Convert a numeric coordinate in degrees to sexagesimal format."""
+    if is_ra:
+        frac_hours = coord*24/360
+        while frac_hours < 0:
+            frac_hours += 24
+        h = int(frac_hours)
+        m = int(60*(frac_hours - h))
+        s = 60*(60*(frac_hours - h) - m)
+        return fmt.format(h, m, s).lstrip("+")
+    else:
+        d = int(coord)
+        m = int(60*(coord - d))
+        s = 60*(60*(coord - d) - m)
+        return fmt.format(d, m, s)
 
 def generate_tlist_file(platefiles, rotator=ROTATOR_SETTING, n0=1,sn0=1):
 
@@ -94,17 +109,17 @@ def generate_tlist_file(platefiles, rotator=ROTATOR_SETTING, n0=1,sn0=1):
             id=(p.name+':'+f.name).replace(' ', '_').replace(':', '_')
             s=obsfmt.format(n=ndx,
                             id=id,
-                            ra=sexconvert(f.ra, ra=True, dtype=str),
-                            de=sexconvert(f.dec, dtype=str),
+                            ra=coord_to_sexagesimal(f.ra, is_ra=True),
+                            de=coord_to_sexagesimal(f.dec, is_ra=False),
                             eq=f.epoch,
                             pmRA=f.pm_ra,
                             pmDE=f.pm_dec,
                             irot=rot,
                             rotmode='EQU',
-                            gra1=sexconvert(0,dtype=str),
-                            gde1=sexconvert(0,dtype=str),
-                            gra2=sexconvert(0,dtype=str),
-                            gde2=sexconvert(0,dtype=str),
+                            gra1=coord_to_sexagesimal(0, is_ra=True),
+                            gde1=coord_to_sexagesimal(0, is_ra=False),
+                            gra2=coord_to_sexagesimal(0, is_ra=True),
+                            gde2=coord_to_sexagesimal(0, is_ra=False),
                             geq2=0,
                             geq1=0)
 
@@ -124,32 +139,32 @@ def generate_tlist_file(platefiles, rotator=ROTATOR_SETTING, n0=1,sn0=1):
             for t in f.standards:
                 s=obsfmt.format(n=stdndx,
                                 id=t.id.replace(' ', '_'),
-                                ra=sexconvert(t.ra, ra=True, dtype=str),
-                                de=sexconvert(t.dec, dtype=str),
+                                ra=coord_to_sexagesimal(t.ra, is_ra=True),
+                                de=coord_to_sexagesimal(t.dec, is_ra=False),
                                 eq=t.epoch,
                                 pmRA=t.pm_ra,
                                 pmDE=t.pm_dec,
                                 irot=rot,
                                 rotmode='EQU',
-                                gra1=sexconvert(0,dtype=str),
-                                gde1=sexconvert(0,dtype=str),
-                                gra2=sexconvert(0,dtype=str),
-                                gde2=sexconvert(0,dtype=str),
+                                gra1=coord_to_sexagesimal(0, is_ra=True),
+                                gde1=coord_to_sexagesimal(0, is_ra=False),
+                                gra2=coord_to_sexagesimal(0, is_ra=True),
+                                gde2=coord_to_sexagesimal(0, is_ra=False),
                                 geq2=0,
                                 geq1=0)
                 std_rec=obsfmt.format(n=0,
                                 id=t.id.replace(' ', '_'),
-                                ra=sexconvert(t.ra, ra=True, dtype=str),
-                                de=sexconvert(t.dec, dtype=str),
+                                ra=coord_to_sexagesimal(t.ra, is_ra=True),
+                                de=coord_to_sexagesimal(t.dec, is_ra=False),
                                 eq=t.epoch,
                                 pmRA=t.pm_ra,
                                 pmDE=t.pm_dec,
                                 irot=rot,
                                 rotmode='EQU',
-                                gra1=sexconvert(0,dtype=str),
-                                gde1=sexconvert(0,dtype=str),
-                                gra2=sexconvert(0,dtype=str),
-                                gde2=sexconvert(0,dtype=str),
+                                gra1=coord_to_sexagesimal(0, is_ra=True),
+                                gde1=coord_to_sexagesimal(0, is_ra=False),
+                                gra2=coord_to_sexagesimal(0, is_ra=True),
+                                gde2=coord_to_sexagesimal(0, is_ra=False),
                                 geq2=0,
                                 geq1=0)
                 if std_rec not in stds_listed:

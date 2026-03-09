@@ -10,5 +10,5 @@ setuptools.setup(name='m2fscontrol',
                    "License :: OSI Approved :: MIT License",
                    "Operating System :: POSIX",
                    "Intended Audience :: Science/Research"),
-      install_requires=['numpy>=1.8.0', 'jbastro', 'hole-mapper']
+      install_requires=['numpy>=1.8.0', 'hole-mapper']
 )

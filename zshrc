@@ -1,6 +1,6 @@
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
-export PYTHONPATH=$PYTHONPATH:/M2FS-Control/jbastro:/M2FS-Control
+export PYTHONPATH=$PYTHONPATH:/M2FS-Control
 
 # Path to your oh-my-zsh installation.
   export ZSH=$HOME/.oh-my-zsh
